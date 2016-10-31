@@ -1,2 +1,9 @@
 # ply-test
-A few tests with PLY polygon files
+
+Usage: python ply-test.py datafile.ply   
+
+A few simple tests handling PLY polygon files   
+
+http://www.dcs.ed.ac.uk/teaching/cs4/www/graphics/Web/ply.html   
+
+Uses https://github.com/dranjan/python-plyfile and, in turn, NumPy   
