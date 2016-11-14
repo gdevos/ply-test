@@ -16,6 +16,8 @@ import numpy
 
 from plyfile import PlyData
 
+from shapely.geometry import Polygon, Point
+
 def main():
     parser = ArgumentParser()
 
@@ -54,24 +56,31 @@ def intersection(args):
     print "Boundingbox=", args.boundingbox
     print "Outfile=", args.outfile
     ply = PlyData.read(args.plyfile)
-    
-    #Loop through polygons
+
+    # Loop through polygons
     poly_count = ply['polygon'].count
     for poly_i in range(0,poly_count):
-        #if poly_i in bbox
-            #add poly_i to intermediary file
+        print "Polygon=", ply['polygon'][poly_i]
+        #if poly_i intersects(boundingbox)
+            #add poly_i to intermediary list
 
-    #Loop through cuboids
+    # Loop through cuboids
     cube_count = ply['cuboid'].count
     for cub_i in range(0,cube_count):
-        #if cub_i in bbox
-            #add cub_i to intermediary file
+        print "Cuboid=", ply['cuboid'][cub_i]
+        #if cub_i intersects(boundingbox)
+            #add cub_i to intermediary list
+
     #write intermediary file
 
 def write(args):
     '''
     Reads intermediary file and writes it as a PLY file
     '''
+
+    # read infile elements
+
+    # create ply datastructure
 
 def fileinfo(args):
     ply = PlyData.read(args.plyfile)
