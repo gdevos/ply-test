@@ -8,6 +8,7 @@ A few simple tests handling PLY polygon files
 http://www.dcs.ed.ac.uk/teaching/cs4/www/graphics/Web/ply.html
 
 Uses https://github.com/dranjan/python-plyfile and, in turn, NumPy
+Shapely does the hard Geo work http://toblerity.org/shapely/manual.html
 '''
 
 from argparse import ArgumentParser
@@ -17,6 +18,7 @@ import numpy
 from plyfile import PlyData
 
 from shapely.geometry import Polygon, Point
+from shapely.wkt import dumps, loads
 
 def main():
     parser = ArgumentParser()
@@ -37,7 +39,7 @@ def main():
     write_parser.add_argument('outputPLYfile', help='Output PLY filename')
     write_parser.set_defaults(func=write)
 
-    # old fileinfo functions
+    # simple fileinfo functions
     fileinfo_parser = subparsers.add_parser('fileinfo', help='Show some info on PLY file')
     fileinfo_parser.add_argument('plyfile', help='Input PLY filename')
     fileinfo_parser.set_defaults(func=fileinfo)
@@ -55,12 +57,34 @@ def intersection(args):
     print "Plyfile=", args.plyfile
     print "Boundingbox=", args.boundingbox
     print "Outfile=", args.outfile
+
+    # Open outfile for appending
+    outf = open(args.outfile, 'a')
+
+    # Load WKT into shapely polygon
+    bbox = Polygon(loads(args.boundingbox))
+    #print bbox
+    #print bbox.area
+    #print bbox.length
+
+    # Reading the PLY file
     ply = PlyData.read(args.plyfile)
 
     # Loop through polygons
     poly_count = ply['polygon'].count
     for poly_i in range(0,poly_count):
-        print "Polygon=", ply['polygon'][poly_i]
+        # List of vertice tuples
+        vtcs = ply['vertex'][ply['polygon'][poly_i].tolist()].tolist()
+        # into shapely Polygon
+        poly = Polygon(vtcs)
+        #print poly
+        # Shapely intersects() does the job nicely
+        print "Polygon", poly_i, "intersects=", poly.intersects(bbox)
+        if poly.intersects(bbox):
+            # to WKT
+            polywkt = dumps(poly) + '\n'
+            print "Adding to file", polywkt
+            outf.write(polywkt)
         #if poly_i intersects(boundingbox)
             #add poly_i to intermediary list
 
@@ -68,14 +92,17 @@ def intersection(args):
     cube_count = ply['cuboid'].count
     for cub_i in range(0,cube_count):
         print "Cuboid=", ply['cuboid'][cub_i]
+        for i in ply['cuboid'][cub_i].tolist():
+            print "Vertex=", ply['vertex'][i]
         #if cub_i intersects(boundingbox)
             #add cub_i to intermediary list
 
     #write intermediary file
+    outf.close()
 
 def write(args):
     '''
-    Reads intermediary file and writes it as a PLY file
+    Reads intermediary WKT file and writes it as a PLY file
     '''
 
     # read infile elements
