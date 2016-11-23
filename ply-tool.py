@@ -17,7 +17,7 @@ import numpy
 
 from plyfile import PlyData
 
-from shapely.geometry import Polygon, Point
+from shapely.geometry import Polygon, Point, MultiPoint
 from shapely.wkt import dumps, loads
 
 def main():
@@ -54,6 +54,8 @@ def intersection(args):
     '''
     Reads ply, applies boundingbox and writes matching polygon/cuboid
     '''
+    # ./ply-tool.py intersection test_data/house1.ply "POLYGON ((30 10, 80 80, 20 40, 0 10, 30 10))" bla2
+
     print "Plyfile=", args.plyfile
     print "Boundingbox=", args.boundingbox
     print "Outfile=", args.outfile
@@ -79,23 +81,29 @@ def intersection(args):
         poly = Polygon(vtcs)
         #print poly
         # Shapely intersects() does the job nicely
-        print "Polygon", poly_i, "intersects=", poly.intersects(bbox)
-        if poly.intersects(bbox):
+        print "Polygon", poly_i, "intersects=", bbox.intersects(poly)
+        if bbox.intersects(poly):
             # to WKT
             polywkt = dumps(poly) + '\n'
             print "Adding to file", polywkt
             outf.write(polywkt)
-        #if poly_i intersects(boundingbox)
-            #add poly_i to intermediary list
 
     # Loop through cuboids
     cube_count = ply['cuboid'].count
     for cub_i in range(0,cube_count):
-        print "Cuboid=", ply['cuboid'][cub_i]
-        for i in ply['cuboid'][cub_i].tolist():
-            print "Vertex=", ply['vertex'][i]
-        #if cub_i intersects(boundingbox)
-            #add cub_i to intermediary list
+        # List of vertice tuples
+        vtcs = ply['vertex'][ply['cuboid'][cub_i].tolist()].tolist()
+        print vtcs
+        # into multipoint for now. should be polyhedron(?) I think but shapely doesn't have that
+        mp = MultiPoint(vtcs)
+        print mp
+        # Shapely intersects() does the job nicely
+        print "Cuboid", cub_i, "intersects=", bbox.intersects(mp)
+        if bbox.intersects(mp):
+            # to WKT
+            mpwkt = dumps(mp) + '\n'
+            print "Adding to file", mpwkt
+            outf.write(mpwkt)
 
     #write intermediary file
     outf.close()
@@ -104,10 +112,35 @@ def write(args):
     '''
     Reads intermediary WKT file and writes it as a PLY file
     '''
+    #./ply-tool.py write intermediaryfile outfile.ply
+    print "intermediaryfile=", args.infile
+    print "outputPLYfile=", args.outputPLYfile
 
     # read infile elements
+    inf = open(args.infile, 'r')
+
+    # for line in infile. get data into structured numpy arrays
+    for line in inf:
+        ob = loads(line)
+        #print ob
+        if type(ob) is Polygon:
+            print "Polygon"
+            # do polygon things
+            # for vertex in vertices:
+                #
+        elif type(ob) is MultiPoint:
+            print "MultiPoint"
+            # do cuboid things
+        else:
+            print "Unknown shape"
 
     # create ply datastructure
+
+    # write PLY file
+    #PlyData([el], text=True).write(outputPLYfile)
+
+    inf.close()
+
 
 def fileinfo(args):
     ply = PlyData.read(args.plyfile)
