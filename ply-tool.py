@@ -15,7 +15,7 @@ from argparse import ArgumentParser
 
 import numpy
 
-from plyfile import PlyData
+from plyfile import PlyData, PlyElement
 
 from shapely.geometry import Polygon, Point, MultiPoint
 from shapely.wkt import dumps, loads
@@ -36,7 +36,7 @@ def main():
     # write command
     write_parser = subparsers.add_parser('write', help='Write new PLY file from intermediary file')
     write_parser.add_argument('infile', action='store', help='Intermediary filename')
-    write_parser.add_argument('outputPLYfile', help='Output PLY filename')
+    write_parser.add_argument('output_ply_file', help='Output PLY filename')
     write_parser.set_defaults(func=write)
 
     # simple fileinfo functions
@@ -114,20 +114,32 @@ def write(args):
     '''
     #./ply-tool.py write intermediaryfile outfile.ply
     print "intermediaryfile=", args.infile
-    print "outputPLYfile=", args.outputPLYfile
+    print "output_ply_file=", args.output_ply_file
 
     # read infile elements
     inf = open(args.infile, 'r')
 
+    outf_vertices = []
+
+    vertex_index = 0
     # for line in infile. get data into structured numpy arrays
     for line in inf:
         ob = loads(line)
-        #print ob
         if type(ob) is Polygon:
-            print "Polygon"
-            # do polygon things
-            # for vertex in vertices:
-                #
+            vertex_list = list(ob.exterior.coords)
+            #numpy.array([vertex_index])=ob
+            poly_index = []
+            for v in vertex_list:
+                # add v to vertex list
+                outf_vertices.append(v)
+                print vertex_index, v
+                poly_index.append(vertex_index)
+
+                # add index_counter to poly_index
+                vertex_index += 1
+            #outf_polys = numpy.array(poly_index,
+            #                         dtype=[('vertex_indices', 'i4', len(poly_index)])
+
         elif type(ob) is MultiPoint:
             print "MultiPoint"
             # do cuboid things
@@ -135,9 +147,17 @@ def write(args):
             print "Unknown shape"
 
     # create ply datastructure
+    vertex = numpy.array(outf_vertices,
+                         dtype=[('x', 'f4'), ('y', 'f4'),
+                                ('z', 'f4')])
+    print vertex
+    for v in outf_vertices:
+        print v
 
     # write PLY file
-    #PlyData([el], text=True).write(outputPLYfile)
+    el = PlyElement.describe(vertex, 'vertex')
+    pol = PlyElement.describe(polygon, 'polygon')
+    PlyData([el,pol], text=True).write(args.output_ply_file)
 
     inf.close()
 
