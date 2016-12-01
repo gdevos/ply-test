@@ -120,6 +120,10 @@ def write(args):
     inf = open(args.infile, 'r')
 
     outf_vertices = []
+    outf_vertices2 = []
+    outf_polygons = []
+    outf_polygons_len = []
+    outf_cuboids = []
 
     vertex_index = 0
     # for line in infile. get data into structured numpy arrays
@@ -128,36 +132,57 @@ def write(args):
         if type(ob) is Polygon:
             vertex_list = list(ob.exterior.coords)
             #numpy.array([vertex_index])=ob
-            poly_index = []
+            outf_polygons_len.append(len(vertex_list))
+            poly_indices = []
             for v in vertex_list:
                 # add v to vertex list
                 outf_vertices.append(v)
-                print vertex_index, v
-                poly_index.append(vertex_index)
+                #print vertex_index, v
+                poly_indices.append(vertex_index)
 
-                # add index_counter to poly_index
+                # add index_counter to vertex_index
                 vertex_index += 1
-            #outf_polys = numpy.array(poly_index,
-            #                         dtype=[('vertex_indices', 'i4', len(poly_index)])
+            outf_polygons.append(poly_indices)
+            #outf_polys = numpy.array(poly_indices,
+            #                         dtype=[('vertex_indices', 'i4', len(poly_indices)])
 
         elif type(ob) is MultiPoint:
-            print "MultiPoint"
-            # do cuboid things
+            # Getting the vertices from the Point objects
+            vertex_list = []
+            for i in list(ob.geoms):
+                vertex_list.append(list(i.coords)[0])
+                #print list(i.coords[0])
+            cuboid_indices = []
+            for v in vertex_list:
+                outf_vertices2.append(v)
+                cuboid_indices.append(vertex_index)
+                vertex_index += 1
+            outf_cuboids.append(cuboid_indices)
         else:
             print "Unknown shape"
 
     # create ply datastructure
+    # Vertices elements
+
+    outf_vertices.extend(outf_vertices2)
+    print "Vertices=", outf_vertices
     vertex = numpy.array(outf_vertices,
                          dtype=[('x', 'f4'), ('y', 'f4'),
                                 ('z', 'f4')])
-    print vertex
-    for v in outf_vertices:
-        print v
+    ver = PlyElement.describe(vertex, 'vertex')
+
+    print "Polygons=", outf_polygons
+    print "Polygon items=", tuple(outf_polygons_len)
+    #polygon = numpy.array(outf_polygons,
+    #                      dtype=[('vertex_indices', 'i4', ())])
+    polygon_array = numpy.empty(len(outf_polygons), dtype=[('vertex_indices', 'i4', ())])
+    polygon_array['vertex_indices'] = outf_polygons
+    pol = PlyElement.describe(polygon_array, 'polygon')
+
+    #cuboids = numpy.array etc etc
 
     # write PLY file
-    el = PlyElement.describe(vertex, 'vertex')
-    pol = PlyElement.describe(polygon, 'polygon')
-    PlyData([el,pol], text=True).write(args.output_ply_file)
+    PlyData([ver,pol], text=True).write(args.output_ply_file)
 
     inf.close()
 
