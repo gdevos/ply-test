@@ -9,6 +9,8 @@ http://www.dcs.ed.ac.uk/teaching/cs4/www/graphics/Web/ply.html
 
 Uses https://github.com/dranjan/python-plyfile and, in turn, NumPy
 Shapely does the hard Geo work http://toblerity.org/shapely/manual.html
+
+./ply-tool.py intersection test_data/house1.ply "POLYGON ((0 0, 0 80, 80 80, 80 0, 0 0))" out.ply
 '''
 
 from argparse import ArgumentParser
@@ -123,7 +125,9 @@ def write(args):
     outf_vertices2 = []
     outf_polygons = []
     outf_polygons_len = []
+    outf_polygons_tuples = []
     outf_cuboids = []
+    outf_cuboids_tuples = []
 
     vertex_index = 0
     # for line in infile. get data into structured numpy arrays
@@ -164,25 +168,40 @@ def write(args):
     # create ply datastructure
     # Vertices elements
 
+    outf_el = []
+
     outf_vertices.extend(outf_vertices2)
     print "Vertices=", outf_vertices
     vertex = numpy.array(outf_vertices,
-                         dtype=[('x', 'f4'), ('y', 'f4'),
-                                ('z', 'f4')])
+                         dtype=[('x', 'f8'), ('y', 'f8'),
+                                ('z', 'f8')])
     ver = PlyElement.describe(vertex, 'vertex')
+    outf_el.append(ver)
 
     print "Polygons=", outf_polygons
-    print "Polygon items=", tuple(outf_polygons_len)
-    #polygon = numpy.array(outf_polygons,
-    #                      dtype=[('vertex_indices', 'i4', ())])
-    polygon_array = numpy.empty(len(outf_polygons), dtype=[('vertex_indices', 'i4', ())])
-    polygon_array['vertex_indices'] = outf_polygons
-    pol = PlyElement.describe(polygon_array, 'polygon')
+    print "Polygon item counts=", tuple(outf_polygons_len)
 
-    #cuboids = numpy.array etc etc
+    polygon_array = numpy.empty(len(outf_polygons), dtype=[('vertex_indices', 'O')])
+    for (k, polygon) in enumerate(outf_polygons):
+        polygon_array[k]['vertex_indices'] = polygon
+    pol = PlyElement.describe(polygon_array, 'polygon')
+    outf_el.append(pol)
+
+    print "Cuboids=", outf_cuboids
+    # cuboid numpy needs an array of tuples of array of vertex indices :/
+    for i in outf_cuboids:
+        tupled_list = (i,)
+        #print tupled_list
+        outf_cuboids_tuples.append(tupled_list)
+    print outf_cuboids_tuples
+    cuboid = numpy.array(outf_cuboids_tuples,
+                        dtype=[('vertex_indices', 'float64', (8,))])
+    cub = PlyElement.describe(cuboid, 'cuboid')
+    outf_el.append(cub)
 
     # write PLY file
-    PlyData([ver,pol], text=True).write(args.output_ply_file)
+    #PlyData([ver,pol,cub], text=True).write(args.output_ply_file)
+    PlyData(outf_el, text=True).write(args.output_ply_file)
 
     inf.close()
 
