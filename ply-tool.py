@@ -79,6 +79,7 @@ def intersection(args):
     for poly_i in range(0,poly_count):
         # List of vertice tuples
         vtcs = ply['vertex'][ply['polygon'][poly_i].tolist()].tolist()
+        #print vtcs
         # into shapely Polygon
         poly = Polygon(vtcs)
         #print poly
@@ -95,10 +96,10 @@ def intersection(args):
     for cub_i in range(0,cube_count):
         # List of vertice tuples
         vtcs = ply['vertex'][ply['cuboid'][cub_i].tolist()].tolist()
-        print vtcs
+        #print vtcs
         # into multipoint for now. should be polyhedron(?) I think but shapely doesn't have that
         mp = MultiPoint(vtcs)
-        print mp
+        #print mp
         # Shapely intersects() does the job nicely
         print "Cuboid", cub_i, "intersects=", bbox.intersects(mp)
         if bbox.intersects(mp):
@@ -135,6 +136,8 @@ def write(args):
         ob = loads(line)
         if type(ob) is Polygon:
             vertex_list = list(ob.exterior.coords)
+            # Remove last closing element, it's assumed in the PLY files
+            vertex_list.pop()
             #numpy.array([vertex_index])=ob
             outf_polygons_len.append(len(vertex_list))
             poly_indices = []
