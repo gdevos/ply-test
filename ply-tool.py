@@ -184,9 +184,9 @@ def write(args):
     print "Polygons=", outf_polygons
     print "Polygon item counts=", tuple(outf_polygons_len)
 
-    polygon_array = numpy.empty(len(outf_polygons), dtype=[('vertex_indices', 'O')])
+    polygon_array = numpy.empty(len(outf_polygons), dtype=[('vertex_index', 'O')])
     for (k, polygon) in enumerate(outf_polygons):
-        polygon_array[k]['vertex_indices'] = polygon
+        polygon_array[k]['vertex_index'] = polygon
     pol = PlyElement.describe(polygon_array, 'polygon')
     outf_el.append(pol)
 
@@ -198,7 +198,7 @@ def write(args):
         outf_cuboids_tuples.append(tupled_list)
     print outf_cuboids_tuples
     cuboid = numpy.array(outf_cuboids_tuples,
-                        dtype=[('vertex_indices', 'float64', (8,))])
+                        dtype=[('vertex_index', 'float64', (8,))])
     cub = PlyElement.describe(cuboid, 'cuboid')
     outf_el.append(cub)
 
