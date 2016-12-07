@@ -161,7 +161,7 @@ def write(args):
                 #print list(i.coords[0])
             cuboid_indices = []
             for v in vertex_list:
-                outf_vertices2.append(v)
+                outf_vertices.append(v)
                 cuboid_indices.append(vertex_index)
                 vertex_index += 1
             outf_cuboids.append(cuboid_indices)
@@ -173,7 +173,7 @@ def write(args):
 
     outf_el = []
 
-    outf_vertices.extend(outf_vertices2)
+    #outf_vertices.extend(outf_vertices2)
     print "Vertices=", outf_vertices
     vertex = numpy.array(outf_vertices,
                          dtype=[('x', 'f8'), ('y', 'f8'),
