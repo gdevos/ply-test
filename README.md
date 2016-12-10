@@ -29,7 +29,7 @@ unzip test_data.zip
 ```
 vagrant ssh
 cd /vagrant
-javac PlyBounder.javac
+javac PlyBounder.java
 
 java PlyBounder -plyPath test_data -boundingbox "POLYGON ((30 10, 40 40, 20 40, 10 20, 30 10))" -outputPlyFile alltogether.ply
 
