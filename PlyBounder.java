@@ -90,7 +90,7 @@ public class PlyBounder {
       }
 		}
 
-    String sometempfile = "magweg.ply";
+    String sometempfile = "magweg.wkt";
     String s = null;
 
     // Loop through .ply files in directory
